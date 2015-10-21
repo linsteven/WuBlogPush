@@ -4,9 +4,12 @@ import urllib
 import re
 import time
 import sendWu
-import sendWu01
 import getTodayUrl
 import socket
+from log import LogError
+from log import LogGet
+from log import LogSended
+from log import LogGetSended
 
 socket.setdefaulttimeout(5)
 
@@ -18,15 +21,12 @@ def getMesg(url) :
     html = page.read()
   except IOError,e :
     errno,errstr = sys.exc_info()[:2]
-    date = time.strftime('%Y%m%d',time.localtime(time.time()))
     curtime = time.strftime('%H:%M:%S',time.localtime(time.time()))
-    logfile = open('./log/Wuerror_' + date + '.log', 'a')
-    logfile.write('\n\n-------------\nstart\n' + curtime + '\n')
+    LogError('\n\n-------------\nstart\n' + curtime)
     if errno == socket.timeout:
-      logfile.write('There was a timeout\n')
+      LogError('There was a timeout')
     else :
-      logfile.write('Some other socket error'  + '\n' )
-    logfile.close()
+      LogError('Some other socket error')
 
   if html == '':
     return lst
@@ -97,10 +97,6 @@ def sendEmail(newLst, latestDeal = '', subject = '今日及时分析_wu2198') :
   isSended = False
   while (not isSended) :
     isSended = sendWu.send(subject, content)
-  isSended01 = False
-  while (not isSended01) :
-    isSended01 = sendWu01.send(subject, content)
-
 
 def output(newLst, deaLst, latestDeal, refreshTime) :
   #本地运行程序时，显示用
@@ -121,11 +117,7 @@ def output(newLst, deaLst, latestDeal, refreshTime) :
 
 def init(date) :
   #需要考虑程序崩溃，重新启动能继续正常运行,邮件不重发
-  sendedFile = open('./log/sendedWu_' + date + '.log','a')
-  sendedFile.close()
-  sendedFile = open('./log/sendedWu_' + date + '.log','r')
-  lines = sendedFile.readlines()
-  sendedFile.close()
+  lines = LogGetSended()
   length = len(lines)
   wuSendedLst = list()
   for i in range(length) :
@@ -142,35 +134,27 @@ def runEnd(url):
   else :
     sendEmail(newLst,'', '今日直播_wu2198')
 
-def Log(s) :
-  date = time.strftime('%Y%m%d',time.localtime(time.time()))
-  logFile = open('./log/getWu_' + date + '.log', 'a')
-  logFile.write(s + '\n')
-  logFile.close()
-
 def runOnce(url, date, wuSendedLst, oldLst ) :
   if url == '':
     return
   newLst = getMesg(url)
   newLen = len(newLst)
   oldLen = len(oldLst)
-  Log('oldLen:' + str(oldLen) + ' newLen:' + str(newLen))
+  LogGet('oldLen:' + str(oldLen) + ' newLen:' + str(newLen))
   if newLen == 0 :
     return
-  Log('before if1')
+  LogGet('before if1')
   if newLen < oldLen :
     #中午是博客内容会改变，上午的没有直播
     del oldLst[:]
     oldLen = 0
-  Log('before if2')
+  LogGet('before if2')
   if newLen > oldLen :
-    Log('new message')
-    Log('\n\n---------------\nNew message:')
+    LogGet('\n\n---------------\nNew message:')
     for pos in range(oldLen, newLen):
       oldLst.append(newLst[pos])
-      Log(newLst[pos])
-    Log('\n')
-    Log('after for1')
+      LogGet(newLst[pos])
+    LogGet('after for1')
     getNew = False
     for i in range(oldLen, newLen) :
       latestDeal = ''
@@ -180,46 +164,41 @@ def runOnce(url, date, wuSendedLst, oldLst ) :
         for j in range(i-3,i) :
           if j < 0 :
             continue
-          Log('in for 2')
+          LogGet('in for 2')
           if re.match(r"^.*\d{1,2}%", newLst[j]) and newLst[j] not in wuSendedLst:
             if '目前中短线仓位' in newLst[j] :
               continue
-            Log('New deal:' + newLst[j])
+            LogGet('New deal:' + newLst[j])
             getNew = True
             wuSendedLst.append(newLst[j])
             latestDeal = latestDeal + newLst[j] + '\n'
             ops = newLst[j].split(' ')
             if len(ops) > 1 :
               subject = subject + ops[1] + ' '
-            sendedFile = open('./log/sendedWu_' + date + '.log','a')
-            sendedFile.write(newLst[j] + '\n')
-            sendedFile.close()
+            LogSended(newLst[j])
         if getNew :
           sendEmail( newLst, latestDeal, subject)
-    Log('after for 111')
+    LogGet('after for 111')
     if getNew is False: #仓位暂时没更新，只更新交易内容，也要能判断出
       for i in range(oldLen, newLen):
         if isDeal(newLst[i]) and newLst[i] not in wuSendedLst :
-          Log('########\n New Deal:' + newLst[i])
+          LogGet('########\n New Deal:' + newLst[i])
           getNew = True
           wuSendedLst.append(newLst[i])
           latestDeal = latestDeal + newLst[i] + '\n'
           ops = newLst[i].split(' ')
           if len(ops) > 1 :
             subject = subject + ops[1] + ' '
-          sendedFile = open('./log/sendedWu_' + date + '.log','a')
-          sendedFile.write(newLst[i] + '\n')
-          sendedFile.close()
+          LogSended(newLst[i])
       if getNew :
         sendEmail(newLst, latestDeal, subject)
 
-  Log('before refreshtime')
+  LogGet('before refreshtime')
   refreshTime =  "\n更新时间: " + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
   #print refreshTime
-  Log(refreshTime + '')
-  Log('-----------------\n')
+  LogGet(refreshTime + '')
+  LogGet('-----------------\n')
   #output(newLst, wuSendedLst, latestDeal, refreshTime) 
-  #logFile.close()
 
 def run():
   #url = getTodayUrl.getUrl()  #url of wu's blog

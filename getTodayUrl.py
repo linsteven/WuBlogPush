@@ -11,6 +11,7 @@ import urllib
 import re
 import time
 import socket
+from log import LogError
 
 listUrl = "http://blog.sina.com.cn/s/articlelist_1216826604_0_1.html"
 
@@ -23,15 +24,12 @@ def getUrl() :
     html = page.read()
   except IOError,e :
     errno,errstr = sys.exc_info()[:2]
-    date = time.strftime('%Y%m%d',time.localtime(time.time()))
     curtime = time.strftime('%H:%M:%S',time.localtime(time.time()))
-    logfile = open('./log/Wuerror_' + date + '.log', 'a')
-    logfile.write('\n\n-------------\ngetTodayUrl error\n' + curtime + '\n')
+    LogError('\n\n-------------\ngetTodayUrl error\n' + curtime)
     if errno == socket.timeout:
-      logfile.write('There was a timeout\n')
+      LogError('There was a timeout')
     else :
-      logfile.write('Some other socket error'  + '\n' )
-    logfile.close()
+      LogError('Some other socket error')
     return 'error'
   lines= html.split('\n')
   numlst = list()
