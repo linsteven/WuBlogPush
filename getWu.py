@@ -3,7 +3,8 @@ import sys
 import urllib
 import re
 import time
-import sendWu
+#import sendWu
+import sendCloud
 import getTodayUrl
 import socket
 from log import LogError
@@ -38,7 +39,7 @@ def getMesg(url) :
   count = 0
   divCount = 0
   for line in lines :
-    if findStart == False and line.startswith('<p>') :
+    if findStart == False and '最新消息与数据' in line :
       findStart = True
       start = count
     if findEnd == False and ('<!-- 正文结束 -->' in line ) : 
@@ -48,22 +49,32 @@ def getMesg(url) :
     count += 1
   for i in range(start,end+1) :
     lines[i] = lines[i].replace('&nbsp;',' ')
-    lines[i] = lines[i].replace('---&gt;','')
-    lines[i], num = re.subn(ur"<((?!>).)*>", "", lines[i])
-    lines[i] = lines[i].strip(' ') 
-    lines[i] = lines[i].replace('&lt;&lt;','<<')
-    lines[i] = lines[i].replace('&gt;&gt;','>>')
-    lines[i] = lines[i].replace('&#9733;','')
-    lines[i] = lines[i].replace('&amp;','&')
-    #if time and the content are placed seperately in two lines, then put time
-    # in the content's line
+    #lines[i] = lines[i].replace('---&gt;','')  ##根据这个考虑分隔小时
+    if "HREF" not in lines[i] :
+      lines[i], num = re.subn(ur"<((?!>).)*>", "", lines[i])
+    else :
+      lines[i] = lines[i].replace('<div>','')
+      lines[i] = lines[i].replace('</DIV>','')
+      lines[i] = lines[i].replace('<span>','')
+      lines[i] = lines[i].replace('</SPAN>','')
+      lines[i] = lines[i].replace('<wbr>','')
+      
+    lines[i] = lines[i].strip() 
+    #lines[i] = lines[i].replace('&lt;&lt;','<<')
+    #lines[i] = lines[i].replace('&gt;&gt;','>>')
+    #lines[i] = lines[i].replace('&#9733;','')
+    #lines[i] = lines[i].replace('&amp;','&')
+    ##if time and the content are placed seperately in two lines, then put time
+    ## in the content's line
     if re.match(ur"^\d{1,2}:\d{2}$", lines[i]) :
       lines[i+1] = lines[i] + " " + lines[i+1]
       lines[i] = ''
-    if (not re.match(ur"^\d{1,2}:\d{2}", lines[i]))  and ( not re.match(r"^\d{1}\.", lines[i])) :
-      lines[i] = ''
+    #if (not re.match(ur"^\d{1,2}:\d{2}", lines[i]))  and ( not re.match(r"^\d{1}\.", lines[i])) :
+    #  lines[i] = ''
     if lines[i] != '' :
       lst.append(lines[i])
+    #if lines[i].strip() != '':
+    #  print lines[i] + '\n'
   return lst
 
 def isDeal(line) :
@@ -96,7 +107,8 @@ def sendEmail(newLst, latestDeal = '', subject = '今日及时分析_wu2198') :
     content += line + '\n\n'
   isSended = False
   while (not isSended) :
-    isSended = sendWu.send(subject, content)
+    #isSended = sendWu.send(subject, content)
+    isSended = True
 
 def output(newLst, deaLst, latestDeal, refreshTime) :
   #本地运行程序时，显示用
@@ -214,3 +226,5 @@ def run():
     time.sleep(10)
 
 #run()
+
+getMesg('http://blog.sina.com.cn/s/blog_48874cec0102w18l.html')
