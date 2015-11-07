@@ -78,6 +78,7 @@ def getMesg(url) :
   for i in range(start,end+1) :
     if lines[i] != '' :
       lst.append(lines[i])
+      #print lines[i]
     #if lines[i].strip() != '':
     #  print lines[i] + '\n'
   return lst

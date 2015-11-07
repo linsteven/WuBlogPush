@@ -3,6 +3,7 @@
 
 import sqlite3 as lite
 import sys
+import time
 
 dbPath = "wuPushes.sqlite"
 
@@ -11,19 +12,19 @@ def initDB():
   with con:
     cur = con.cursor()
     cur.execute("DROP TABLE IF EXISTS Pushes")
-    cur.execute("CREATE TABLE Pushes(Id INTEGER PRIMARY KEY, Title Text, News Text, Deals Text, Content TEXT);")
+    cur.execute("CREATE TABLE Pushes(Id INTEGER PRIMARY KEY, Title Text, Time Text, News Text, Deals Text, Content TEXT);")
 
 def store(title, news, deals, content):
-  pushes =(title, news, deals, content)
+  curtime = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+  pushes =(title, curtime, news, deals, content)
   con = lite.connect(dbPath)
   con.text_factory = str
   with con:
     cur = con.cursor()
-    #cur.execute("INSERT INTO Pushes(Title, News, Deals,Content) VALUES(" + title + "," +  news "," +  deals + "," +  content + ");")
-    cur.execute('''INSERT INTO Pushes(Title, News, Deals, Content) VALUES(?,?,?,?)''', pushes)
+    cur.execute('''INSERT INTO Pushes(Title, Time, News, Deals, Content) VALUES(?,?,?,?,?)''', pushes)
     con.commit()
     lid = cur.lastrowid #The last Id of the inserted row
-    print lid
+    #print lid
     return lid
 
 def queryId(uId):
@@ -36,7 +37,7 @@ def queryId(uId):
     for i in range(len(row)):
       print row[i]
 
-def update(uId, uTitle):
+def updateTitle(uId, uTitle):
   con = lite.connect(dbPath)
   con.text_factory = str
   with con:
@@ -45,6 +46,16 @@ def update(uId, uTitle):
     con.commit()
     print "Number of rows updated: %d" % cur.rowcount
 
+def updateTime(uId, uTime):
+  con = lite.connect(dbPath)
+  con.text_factory = str
+  with con:
+    cur = con.cursor()
+    cur.execute("UPDATE Pushes SET Time=? WHERE Id=?", (uTime, uId)) 
+    con.commit()
+    print "Number of rows updated: %d" % cur.rowcount
+
 #initDB()
-#update(1,'11月06日wu2198股市直播')
+#updateTitle(1,'11月06日wu2198股市直播')
+#updateTime(1,'2015-11-06 15:10:00')
 #queryId(1)
