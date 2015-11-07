@@ -27,23 +27,23 @@ while True :
       if url != 'error' :
         break
     LogRun('url=' + url)
-    sendedLst = getWu.init(date)
+    sendedLst = getWu.init()
     oldLst = list()
     isEnd = False
     isMid = False
     while(isEnter) :
-      getWu.runOnce(url, date, sendedLst, oldLst)
+      getWu.runOnce(url, sendedLst, oldLst)
       time.sleep(2)
       h = time.localtime().tm_hour
       m = time.localtime().tm_min
       s = time.localtime().tm_sec
       LogRun(str(h) + ':' + str(m) + ':' + str(s) )
       if not isMid and h == midHour and m == midMinute :
-        getWu.runEnd(url)
+        getWu.runEnd(url, sendedLst)
         isMid = True
       if not isEnd and h == stopHour and m == stopWuMinute :
         isEnter = False
-        getWu.runEnd(url)
+        getWu.runEnd(url, sendedLst)
         isEnd = True
         LogRun('结束wu2198')
     

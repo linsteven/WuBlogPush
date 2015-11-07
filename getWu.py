@@ -1,12 +1,13 @@
-#coding=utf-8
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import sys
 import urllib
 import re
 import time
-#import sendWu
-import sendCloud
-import getTodayUrl
 import socket
+import getTodayUrl
+import sendCloud
+import storeData
 from log import LogError
 from log import LogGet
 from log import LogSended
@@ -66,11 +67,15 @@ def getMesg(url) :
     #lines[i] = lines[i].replace('&amp;','&')
     ##if time and the content are placed seperately in two lines, then put time
     ## in the content's line
-    if re.match(ur"^\d{1,2}:\d{2}$", lines[i]) :
-      lines[i+1] = lines[i] + " " + lines[i+1]
+    if re.match(ur"^\d{1,2}:\d{2}$", lines[i]):
+      lines[i+1] = lines[i] + '  ' + lines[i+1]
+      lines[i] = ''
+    if re.match(ur"^&lt;&lt;", lines[i]) and i > 0:
+      lines[i-1] = lines[i-1] + '  ' + lines[i]
       lines[i] = ''
     #if (not re.match(ur"^\d{1,2}:\d{2}", lines[i]))  and ( not re.match(r"^\d{1}\.", lines[i])) :
     #  lines[i] = ''
+  for i in range(start,end+1) :
     if lines[i] != '' :
       lst.append(lines[i])
     #if lines[i].strip() != '':
@@ -127,7 +132,7 @@ def output(newLst, deaLst, latestDeal, refreshTime) :
   print refreshTime
   print sep2
 
-def init(date) :
+def init() :
   #需要考虑程序崩溃，重新启动能继续正常运行,邮件不重发
   lines = LogGetSended()
   length = len(lines)
@@ -136,17 +141,31 @@ def init(date) :
     wuSendedLst.append(lines[i].strip('\n'))
   return wuSendedLst
 
-def runEnd(url):
+def runEnd(url, sendedLst):
   if url == '' :
     return
   newLst = getMesg(url)
+  date = time.strftime('%m月%d日',time.localtime(time.time()))
   h = time.localtime().tm_hour
+  deals = listToStr(sendedLst)
+  content = listToStr(newLst)
   if h == 11 :
-    sendEmail(newLst,'', '上午直播_wu2198')
+    title = date + 'wu2198股市直播(上午篇)'
+    lid = storeData.store(title, '', deals, content)
+    sendCloud.send(1, title, '', deals, content, lid) 
   else :
-    sendEmail(newLst,'', '今日直播_wu2198')
+    title = date + 'wu2198股市直播'
+    lid = storeData.store(title, '', deals, content)
+    sendCloud.send(1, title, '', deals, content, lid) 
+    
+def listToStr(lst):
+  ss = ''
+  length = len(lst)
+  for i in range(length):
+    ss += lst[i] + '<br>'
+  return ss
 
-def runOnce(url, date, wuSendedLst, oldLst ) :
+def runOnce(url, wuSendedLst, oldLst ) :
   if url == '':
     return
   newLst = getMesg(url)
@@ -183,13 +202,22 @@ def runOnce(url, date, wuSendedLst, oldLst ) :
             LogGet('New deal:' + newLst[j])
             getNew = True
             wuSendedLst.append(newLst[j])
-            latestDeal = latestDeal + newLst[j] + '\n'
+            latestDeal += newLst[j] + '\n'
             ops = newLst[j].split(' ')
             if len(ops) > 1 :
-              subject = subject + ops[1] + ' '
+              subject += ops[1] + ' '
             LogSended(newLst[j])
         if getNew :
-          sendEmail( newLst, latestDeal, subject)
+          news = ''
+          for hh in range(oldLen, newLen):
+            news += newLst[hh] + '<br>'
+          deals = listToStr(wuSendedLst)
+          content = listToStr(newLst)
+          date = time.strftime('%m月%d日', time.localtime(time.time()))
+          title = date + 'wu2198股市直播更新'
+          lid = storeData.store(title, news, deals, content)
+          sendCloud.send(0, title, news, deals, content, lid)
+          #sendEmail( newLst, latestDeal, subject)
     LogGet('after for 111')
     if getNew is False: #仓位暂时没更新，只更新交易内容，也要能判断出
       for i in range(oldLen, newLen):
@@ -197,20 +225,27 @@ def runOnce(url, date, wuSendedLst, oldLst ) :
           LogGet('########\n New Deal:' + newLst[i])
           getNew = True
           wuSendedLst.append(newLst[i])
-          latestDeal = latestDeal + newLst[i] + '\n'
+          latestDeal = latestDeal + newLst[i] + '<br>'
           ops = newLst[i].split(' ')
           if len(ops) > 1 :
             subject = subject + ops[1] + ' '
           LogSended(newLst[i])
       if getNew :
-        sendEmail(newLst, latestDeal, subject)
+        news = ''
+        for hh in range(oldLen, newLen):
+          news += newLst[hh] + '<br>'
+        deals = listToStr(wuSendedLst)
+        content = listToStr(newLst)
+        date = time.strftime('%m月%d日', time.localtime(time.time()))
+        title = date + 'wu2198股市直播更新'
+        lid = storeData.store(title, news, deals, content)
+        sendCloud.send(0, title, news, deals, content, lid)
+        #sendEmail(newLst, latestDeal, subject)
 
   LogGet('before refreshtime')
   refreshTime =  "\n更新时间: " + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-  #print refreshTime
   LogGet(refreshTime + '')
   LogGet('-----------------\n')
-  #output(newLst, wuSendedLst, latestDeal, refreshTime) 
 
 def run():
   #url = getTodayUrl.getUrl()  #url of wu's blog
@@ -227,4 +262,6 @@ def run():
 
 #run()
 
-getMesg('http://blog.sina.com.cn/s/blog_48874cec0102w18l.html')
+#getMesg('http://blog.sina.com.cn/s/blog_48874cec0102w18l.html')
+#lst = list()
+#runEnd('http://blog.sina.com.cn/s/blog_48874cec0102w32i.html',lst)
