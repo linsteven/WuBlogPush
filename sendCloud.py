@@ -9,18 +9,18 @@ apiFile = open('apiInfo.txt','r')
 apiInfo = apiFile.readlines()
 API_USER = apiInfo[0].strip()
 API_KEY = apiInfo[1].strip()
-pushesUrl = "wublogpush.com/pushes/"
 
-def send(mark, title, news, deals, content, lid) :
+def send(templateId, pushId, title, news, deals, content, url) :
   LogEmail('\n' + time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime()) )
-  LogEmail(title+ '\nnews:\n' + news + '\ndeals:\n' 
+  LogEmail('pushId:' + str(pushId) + '\n' + title+ '\nnews:\n' + news + '\ndeals:\n' 
     + deals + '\ncontent:' + content)
   userFile = open('users_wu.txt','r')
   toLst = userFile.readlines()
   toNum = len(toLst)
   for i in range(toNum):
     toLst[i] = toLst[i].strip()
-  url = pushesUrl + str(lid) 
+
+  pushIdLst = list()
   titleLst = list()
   newsLst = list()
   dealsLst = list()
@@ -28,6 +28,7 @@ def send(mark, title, news, deals, content, lid) :
   urlLst = list()
 
   for i in range(toNum) :
+    pushIdLst.append(str(pushId))
     titleLst.append(title)
     newsLst.append(news)
     dealsLst.append(deals)
@@ -36,15 +37,17 @@ def send(mark, title, news, deals, content, lid) :
 
   templateName = ''
   sub_vars = ''
-  if mark == 0:
+  if templateId == 0:
     templateName = 'template_wu'
     sub_vars = {
       'to': toLst,
       'sub':{
+        '%id%': pushIdLst,
         '%title%': titleLst,
         '%news%':  newsLst,
         '%deals%': dealsLst,
         '%content%': contentLst,
+        '%url%': urlLst,
         }
       }
   else :
@@ -52,9 +55,11 @@ def send(mark, title, news, deals, content, lid) :
     sub_vars = {
       'to' : toLst,
       'sub':{
+        '%id%': pushIdLst,
         '%title%' : titleLst,
         '%deals%' : dealsLst,
         '%content%': contentLst,
+        '%url%': urlLst,
         }
       }
 

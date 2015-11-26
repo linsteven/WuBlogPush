@@ -152,12 +152,12 @@ def runEnd(url, sendedLst):
   content = listToStr(newLst)
   if h == 11 :
     title = date + 'wu2198股市直播(上午篇)'
-    lid = storeData.store(title, '', deals, content)
-    sendCloud.send(1, title, '', deals, content, lid) 
+    pushId = storeData.store(title, '', deals, content)
+    sendCloud.send(1, pushId, title, '', deals, content, url) 
   else :
     title = date + 'wu2198股市直播'
-    lid = storeData.store(title, '', deals, content)
-    sendCloud.send(1, title, '', deals, content, lid) 
+    pushId = storeData.store(title, '', deals, content)
+    sendCloud.send(1, pushId, title, '', deals, content, url) 
     
 def listToStr(lst):
   ss = ''
@@ -216,8 +216,8 @@ def runOnce(url, wuSendedLst, oldLst ) :
           content = listToStr(newLst)
           date = time.strftime('%m月%d日', time.localtime(time.time()))
           title = date + 'wu2198股市直播更新'
-          lid = storeData.store(title, news, deals, content)
-          sendCloud.send(0, title, news, deals, content, lid)
+          pushId = storeData.store(title, news, deals, content)
+          sendCloud.send(0, pushId, title, news, deals, content, url)
           #sendEmail( newLst, latestDeal, subject)
     LogGet('after for 111')
     if getNew is False: #仓位暂时没更新，只更新交易内容，也要能判断出
@@ -239,8 +239,8 @@ def runOnce(url, wuSendedLst, oldLst ) :
         content = listToStr(newLst)
         date = time.strftime('%m月%d日', time.localtime(time.time()))
         title = date + 'wu2198股市直播更新'
-        lid = storeData.store(title, news, deals, content)
-        sendCloud.send(0, title, news, deals, content, lid)
+        pushId = storeData.store(title, news, deals, content)
+        sendCloud.send(0, pushId, title, news, deals, content, url)
         #sendEmail(newLst, latestDeal, subject)
 
   LogGet('before refreshtime')

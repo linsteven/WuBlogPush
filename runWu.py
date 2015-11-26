@@ -1,7 +1,6 @@
 #coding=utf-8
 import getWu
 import time
-import sendWu
 import getTodayUrl
 from log import LogRun
 
