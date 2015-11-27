@@ -40,7 +40,7 @@ def getMesg(url) :
   count = 0
   divCount = 0
   for line in lines :
-    if findStart == False and '最新消息与数据' in line :
+    if findStart == False and '<!-- 正文开始 -->' in line :
       findStart = True
       start = count
     if findEnd == False and ('<!-- 正文结束 -->' in line ) : 
@@ -59,6 +59,8 @@ def getMesg(url) :
       lines[i] = lines[i].replace('<span>','')
       lines[i] = lines[i].replace('</SPAN>','')
       lines[i] = lines[i].replace('<wbr>','')
+      lines[i] = lines[i].replace('<p>','')
+      lines[i] = lines[i].replace('</P>','')
       
     lines[i] = lines[i].strip() 
     #lines[i] = lines[i].replace('&lt;&lt;','<<')
@@ -80,7 +82,7 @@ def getMesg(url) :
       lst.append(lines[i])
       #print lines[i]
     #if lines[i].strip() != '':
-    #  print lines[i] + '\n'
+      #print lines[i] + '\n'
   return lst
 
 def isDeal(line) :
@@ -191,14 +193,15 @@ def runOnce(url, wuSendedLst, oldLst ) :
     for i in range(oldLen, newLen) :
       latestDeal = ''
       subject = ''
-      if '目前中短线仓位' in newLst[i] :
+      LogGet("before if 中短线")
+      LogGet(newLst[i])
+      if '中短线帐户' in newLst[i] :
         #if several deals occur at the same time, set the subject be the last deal
         for j in range(i-3,i) :
           if j < 0 :
             continue
-          LogGet('in for 2')
           if re.match(r"^.*\d{1,2}%", newLst[j]) and newLst[j] not in wuSendedLst:
-            if '目前中短线仓位' in newLst[j] :
+            if '中短线帐户' in newLst[j] :
               continue
             LogGet('New deal:' + newLst[j])
             getNew = True
@@ -263,6 +266,6 @@ def run():
 
 #run()
 
-#getMesg('http://blog.sina.com.cn/s/blog_48874cec0102w18l.html')
+#getMesg('http://blog.sina.com.cn/s/blog_48874cec0102w6sb.html')
 #lst = list()
 #runEnd('http://blog.sina.com.cn/s/blog_48874cec0102w32i.html',lst)
