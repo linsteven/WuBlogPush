@@ -154,11 +154,11 @@ def runEnd(url, sendedLst):
   content = listToStr(newLst)
   if h == 11 :
     title = date + 'wu2198股市直播(上午篇)'
-    pushId = storeData.store(title, '', deals, content)
+    pushId = storeData.store(title, '', deals, content, url)
     sendCloud.send(1, pushId, title, '', deals, content, url) 
   else :
     title = date + 'wu2198股市直播'
-    pushId = storeData.store(title, '', deals, content)
+    pushId = storeData.store(title, '', deals, content, url)
     sendCloud.send(1, pushId, title, '', deals, content, url) 
     
 def listToStr(lst):
@@ -219,7 +219,7 @@ def runOnce(url, wuSendedLst, oldLst ) :
           content = listToStr(newLst)
           date = time.strftime('%m月%d日', time.localtime(time.time()))
           title = date + 'wu2198股市直播更新'
-          pushId = storeData.store(title, news, deals, content)
+          pushId = storeData.store(title, news, deals, content, url)
           sendCloud.send(0, pushId, title, news, deals, content, url)
           #sendEmail( newLst, latestDeal, subject)
     LogGet('after for 111')
@@ -242,7 +242,7 @@ def runOnce(url, wuSendedLst, oldLst ) :
         content = listToStr(newLst)
         date = time.strftime('%m月%d日', time.localtime(time.time()))
         title = date + 'wu2198股市直播更新'
-        pushId = storeData.store(title, news, deals, content)
+        pushId = storeData.store(title, news, deals, content, url)
         sendCloud.send(0, pushId, title, news, deals, content, url)
         #sendEmail(newLst, latestDeal, subject)
 

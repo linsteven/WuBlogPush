@@ -12,16 +12,16 @@ def initDB():
   with con:
     cur = con.cursor()
     cur.execute("DROP TABLE IF EXISTS Pushes")
-    cur.execute("CREATE TABLE Pushes(Id INTEGER PRIMARY KEY, Title Text, Time Text, News Text, Deals Text, Content TEXT);")
+    cur.execute("CREATE TABLE Pushes(Id INTEGER PRIMARY KEY, Title Text, Time Text, News Text, Deals Text, Content TEXT, Url TEXT);")
 
-def store(title, news, deals, content):
+def store(title, news, deals, content, url):
   curtime = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-  pushes =(title, curtime, news, deals, content)
+  pushes =(title, curtime, news, deals, content, url)
   con = lite.connect(dbPath)
   con.text_factory = str
   with con:
     cur = con.cursor()
-    cur.execute('''INSERT INTO Pushes(Title, Time, News, Deals, Content) VALUES(?,?,?,?,?)''', pushes)
+    cur.execute('''INSERT INTO Pushes(Title, Time, News, Deals, Content, Url) VALUES(?,?,?,?,?,?)''', pushes)
     con.commit()
     lid = cur.lastrowid #The last Id of the inserted row
     #print lid
