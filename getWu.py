@@ -43,6 +43,8 @@ def getMesg(url) :
     if findStart == False and '<!-- 正文开始 -->' in line :
       findStart = True
       start = count
+    if '最新消息与数据' in line :
+      start = count
     if findEnd == False and ('<!-- 正文结束 -->' in line ) : 
       findEnd = True
       end = count
@@ -182,18 +184,15 @@ def runOnce(url, wuSendedLst, oldLst ) :
     #中午是博客内容会改变，上午的没有直播
     del oldLst[:]
     oldLen = 0
-  LogGet('before if2')
   if newLen > oldLen :
     LogGet('\n\n---------------\nNew message:')
     for pos in range(oldLen, newLen):
       oldLst.append(newLst[pos])
       LogGet(newLst[pos])
-    LogGet('after for1')
     getNew = False
     for i in range(oldLen, newLen) :
       latestDeal = ''
       subject = ''
-      LogGet("before if 中短线")
       LogGet(newLst[i])
       if '中短线帐户' in newLst[i] :
         #if several deals occur at the same time, set the subject be the last deal
@@ -268,4 +267,4 @@ def run():
 
 #getMesg('http://blog.sina.com.cn/s/blog_48874cec0102w6sb.html')
 #lst = list()
-#runEnd('http://blog.sina.com.cn/s/blog_48874cec0102w32i.html',lst)
+#runEnd('http://blog.sina.com.cn/s/blog_48874cec0102w7fu.html',lst)
