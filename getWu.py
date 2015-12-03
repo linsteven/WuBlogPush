@@ -7,7 +7,7 @@ import time
 import socket
 import getTodayUrl
 import sendCloud
-import storeData
+import handleData
 from log import LogError
 from log import LogGet
 from log import LogSended
@@ -99,43 +99,11 @@ def isDeal(line) :
       re.match(r"^.*挂中\d{1,2}%", line) or
       re.match(r"^.*成交\d{1,2}%", line) or
       re.match(r"^.*减仓\d{1,2}%", line) or
+      re.match(r"^.*加仓\d{1,2}%", line) or
       re.match(r"^.*接回\d{1,2}%", line) or
       re.match(r"^.*回补\d{1,2}%", line) ):
     return True
   return False
-
-def sendEmail(newLst, latestDeal = '', subject = '今日及时分析_wu2198') :
-  content = ''
-  if subject == '上午直播_wu2198' :
-    content = '上午分析:\n\n'
-  elif subject == '今日直播_wu2198' :
-    content = '今日分析:\n\n'
-  else:
-    content = '新交易：' + latestDeal + ' \n\n' + '及时分析: ' + '\n\n' 
-  for line in newLst :
-    line = line.replace(' ', '  ') #扩大时间和内容间距离
-    content += line + '\n\n'
-  isSended = False
-  while (not isSended) :
-    #isSended = sendWu.send(subject, content)
-    isSended = True
-
-def output(newLst, deaLst, latestDeal, refreshTime) :
-  #本地运行程序时，显示用
-  sep1 = '\n' + '-' * 25
-  sep2 = '\n' + '=' * 25
-  print '今日分析：\n'
-  for line in newLst :
-   print line
-  print sep1
-  print '今日交易：'
-  for line in deaLst : 
-    print line
-  print sep1
-  print '\n最新交易: ' + latestDeal
-  print sep1
-  print refreshTime
-  print sep2
 
 def init() :
   #需要考虑程序崩溃，重新启动能继续正常运行,邮件不重发
@@ -156,12 +124,14 @@ def runEnd(url, sendedLst):
   content = listToStr(newLst)
   if h == 11 :
     title = date + 'wu2198股市直播(上午篇)'
-    pushId = storeData.store(title, '', deals, content, url)
-    sendCloud.send(1, pushId, title, '', deals, content, url) 
+    subject = date + 'wu2198股市直播(上午篇)'
+    pushId = handleData.storePush(title, '', deals, content, url)
+    sendCloud.send(1, pushId, title, '', deals, content, url, subject) 
   else :
     title = date + 'wu2198股市直播'
-    pushId = storeData.store(title, '', deals, content, url)
-    sendCloud.send(1, pushId, title, '', deals, content, url) 
+    subject = date + 'wu2198股市直播'
+    pushId = handleData.storePush(title, '', deals, content, url)
+    sendCloud.send(1, pushId, title, '', deals, content, url, subject) 
     
 def listToStr(lst):
   ss = ''
@@ -179,6 +149,7 @@ def runOnce(url, wuSendedLst, oldLst ) :
   LogGet('oldLen:' + str(oldLen) + ' newLen:' + str(newLen))
   if newLen == 0 :
     return
+  subject = ''
   LogGet('before if1')
   if newLen < oldLen :
     #中午是博客内容会改变，上午的没有直播
@@ -192,7 +163,6 @@ def runOnce(url, wuSendedLst, oldLst ) :
     getNew = False
     for i in range(oldLen, newLen) :
       latestDeal = ''
-      subject = ''
       LogGet(newLst[i])
       if '中短线帐户' in newLst[i] :
         #if several deals occur at the same time, set the subject be the last deal
@@ -218,9 +188,8 @@ def runOnce(url, wuSendedLst, oldLst ) :
           content = listToStr(newLst)
           date = time.strftime('%m月%d日', time.localtime(time.time()))
           title = date + 'wu2198股市直播更新'
-          pushId = storeData.store(title, news, deals, content, url)
-          sendCloud.send(0, pushId, title, news, deals, content, url)
-          #sendEmail( newLst, latestDeal, subject)
+          pushId = handleData.storePush(title, news, deals, content, url)
+          sendCloud.send(0, pushId, title, news, deals, content, url, subject)
     LogGet('after for 111')
     if getNew is False: #仓位暂时没更新，只更新交易内容，也要能判断出
       for i in range(oldLen, newLen):
@@ -241,11 +210,9 @@ def runOnce(url, wuSendedLst, oldLst ) :
         content = listToStr(newLst)
         date = time.strftime('%m月%d日', time.localtime(time.time()))
         title = date + 'wu2198股市直播更新'
-        pushId = storeData.store(title, news, deals, content, url)
+        pushId = handleData.storePush(title, news, deals, content, url, subject)
         sendCloud.send(0, pushId, title, news, deals, content, url)
-        #sendEmail(newLst, latestDeal, subject)
 
-  LogGet('before refreshtime')
   refreshTime =  "\n更新时间: " + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
   LogGet(refreshTime + '')
   LogGet('-----------------\n')
@@ -266,5 +233,5 @@ def run():
 #run()
 
 #getMesg('http://blog.sina.com.cn/s/blog_48874cec0102w6sb.html')
-#lst = list()
-#runEnd('http://blog.sina.com.cn/s/blog_48874cec0102w7fu.html',lst)
+lst = list()
+runEnd('http://blog.sina.com.cn/s/blog_48874cec0102w7fu.html',lst)

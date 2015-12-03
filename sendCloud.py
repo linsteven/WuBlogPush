@@ -1,25 +1,27 @@
 #coding=utf-8
 import requests, json
 import time
+import os
+from handleData import getUsers
 from log import LogEmail
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
-mailUrl = "http://sendcloud.sohu.com/webapi/mail.send_template.json"
+mailUrl = "http://api.sendcloud.net/apiv2/mail/sendtemplate"
 
-apiFile = open('apiInfo.txt','r')
-apiInfo = apiFile.readlines()
-API_USER = apiInfo[0].strip()
-API_KEY = apiInfo[1].strip()
+API_USER = "linsteven_test"
+API_KEY = os.environ.get("API_KEY")
 
-def send(templateId, pushId, title, news, deals, content, url) :
+def send(templateId, pushId, title, news, deals, content, url, subject='') :
+  if subject == '':
+    subject = title
   LogEmail('\n' + time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime()) )
   LogEmail('pushId:' + str(pushId) + '\n' + title+ '\nnews:\n' + news + '\ndeals:\n' 
     + deals + '\ncontent:' + content)
-  userFile = open('users_wu.txt','r')
-  toLst = userFile.readlines()
-  toNum = len(toLst)
-  for i in range(toNum):
-    toLst[i] = toLst[i].strip()
-
+  usersLst = getUsers()
+  toLst = list()
+  unsubscribeUrlLst = list()
   pushIdLst = list()
   titleLst = list()
   newsLst = list()
@@ -27,55 +29,45 @@ def send(templateId, pushId, title, news, deals, content, url) :
   contentLst = list()
   urlLst = list()
 
-  for i in range(toNum) :
+  toNum = len(usersLst)
+  for i in range(toNum):
+    toLst.append(usersLst[i][0])
+    unsubscribeUrlLst.append("http://wublogpush.com/unsubscribe/" + usersLst[i][1])
     pushIdLst.append(str(pushId))
     titleLst.append(title)
     newsLst.append(news)
     dealsLst.append(deals)
     contentLst.append(content)
     urlLst.append(url)
+  sub_vars = {
+    'to': toLst,
+    'sub':{
+      '%id%': pushIdLst,
+      '%title%': titleLst,
+      '%news%':  newsLst,
+      '%deals%': dealsLst,
+      '%content%': contentLst,
+      '%url%': urlLst,
+      '%%user_defined_unsubscribe_link%%' : unsubscribeUrlLst,
+        }
+      }
 
   templateName = ''
-  sub_vars = ''
   if templateId == 0:
     templateName = 'template_wu'
-    sub_vars = {
-      'to': toLst,
-      'sub':{
-        '%id%': pushIdLst,
-        '%title%': titleLst,
-        '%news%':  newsLst,
-        '%deals%': dealsLst,
-        '%content%': contentLst,
-        '%url%': urlLst,
-        }
-      }
   else :
     templateName = 'template_wu_all'
-    sub_vars = {
-      'to' : toLst,
-      'sub':{
-        '%id%': pushIdLst,
-        '%title%' : titleLst,
-        '%deals%' : dealsLst,
-        '%content%': contentLst,
-        '%url%': urlLst,
-        }
-      }
-
   params = {
-    "api_user": API_USER,
-    "api_key" : API_KEY,
-    "template_invoke_name" : templateName,
-    "substitution_vars" : json.dumps(sub_vars), 
+    "apiUser": API_USER,
+    "apiKey" : API_KEY,
+    "templateInvokeName" : templateName,
+    "xsmtpapi" : json.dumps(sub_vars), 
     "from" : "wu@batch.wublogpush.com",
-    "fromname" : "吴姐推送",
-    "subject" : title,
-    "resp_email_id": "true",
+    "fromName" : "吴姐推送",
+    "subject" : subject,
     }
   
   r = requests.post(mailUrl, files={}, data=params)
   LogEmail(r.text)
 
-#send('大刘微博内容','http://www.imaibo.net/space/1954702')
-
+#send('0', '1', 'wu2198股市直播', '', '', '', '')

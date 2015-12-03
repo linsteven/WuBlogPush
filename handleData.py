@@ -20,7 +20,7 @@ def initDB():
             subscribed_on DateTime, confirmed Boolean, confirmed_on DateTime, \
             unsubscribed Boolean, unsubscribed_on DateTime);")
 
-def store(title, news, deals, content, url):
+def storePush(title, news, deals, content, url):
   curtime = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
   pushes =(title, curtime, news, deals, content, url)
   con = lite.connect(dbPath)
@@ -36,7 +36,7 @@ def store(title, news, deals, content, url):
 
 def storeUser(email, token):
   curtime = datetime.datetime.now()
-  pushes =(email, token, curtime, False, curtime, False, None)
+  pushes =(email, token, curtime, True, curtime, False, None)
   con = lite.connect(dbPath)
   con.text_factory = str
   with con:
@@ -46,8 +46,17 @@ def storeUser(email, token):
             VALUES(?,?,?,?,?,?,?)''', pushes)
     con.commit()
     lid = cur.lastrowid #The last Id of the inserted row
-    #print lid
     return lid
+
+def getUsers():
+  con = lite.connect(dbPath)
+  with con:
+    cur = con.cursor()
+    cur.execute("SELECT email,token FROM users WHERE confirmed='1' AND unsubscribed='0'")
+    con.commit()
+    rows = cur.fetchall()
+    return rows
+  return null
 
 def queryId(uId):
   con = lite.connect(dbPath)
@@ -68,6 +77,7 @@ def queryUserId(uId):
     row = cur.fetchone()
     for i in range(len(row)):
       print row[i]
+
 def updateTitle(uId, uTitle):
   con = lite.connect(dbPath)
   con.text_factory = str
@@ -88,10 +98,6 @@ def updateTime(uId, uTime):
 
 #initDB()
 #store('csava', 'fefew', 'fesaf', 'fwfweg','http://sf')
-#updateTitle(1,'11月06日wu2198股市直播')
-#updateTime(1,'2015-11-06 15:10:00')
 #queryId(1)
-#print storeUser('yinfs@fs.com')
 #queryUserId(2)
-#queryUserId(3)
-#queryUserId(5)
+#getUsers()

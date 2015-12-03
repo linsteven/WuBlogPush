@@ -1,6 +1,7 @@
 #coding=utf-8
 import sys
 import time
+import datetime
 
 
 #This module contains many functions that can log,
@@ -49,4 +50,12 @@ def LogEmail(mesg) :
   date = time.strftime('%Y%m%d',time.localtime(time.time()))
   logFile = open('./log/email_' + date + '.log','a')
   logFile.write(mesg + '\n')
+  logFile.close()
+
+def LogUpdateAddrLst(mesg) :
+  dt = datetime.datetime.now()
+  date = dt.strftime('%Y%m%d')
+  logFile = open('./log/update_addrlst_' + date + '.log','a')
+  ctime = dt.strftime('%m-%d %H:%M:%S  ')
+  logFile.write(ctime + mesg + '\n')
   logFile.close()
