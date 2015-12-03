@@ -8,6 +8,7 @@ import socket
 import getTodayUrl
 import sendCloud
 import handleData
+from models import Push
 from log import LogError
 from log import LogGet
 from log import LogSended
@@ -122,16 +123,16 @@ def runEnd(url, sendedLst):
   h = time.localtime().tm_hour
   deals = listToStr(sendedLst)
   content = listToStr(newLst)
+  title = ''
   if h == 11 :
     title = date + 'wu2198股市直播(上午篇)'
-    subject = date + 'wu2198股市直播(上午篇)'
-    pushId = handleData.storePush(title, '', deals, content, url)
-    sendCloud.send(1, pushId, title, '', deals, content, url, subject) 
   else :
     title = date + 'wu2198股市直播'
-    subject = date + 'wu2198股市直播'
-    pushId = handleData.storePush(title, '', deals, content, url)
-    sendCloud.send(1, pushId, title, '', deals, content, url, subject) 
+  subject = title
+  pushId = handleData.storePush(title, '', deals, content, url)
+  push = Push(1, pushId, title, '', deals, content, url, subject) 
+  sendCloud.send(push)
+  #sendCloud.send(1, pushId, title, '', deals, content, url, subject) 
     
 def listToStr(lst):
   ss = ''
@@ -189,7 +190,9 @@ def runOnce(url, wuSendedLst, oldLst ) :
           date = time.strftime('%m月%d日', time.localtime(time.time()))
           title = date + 'wu2198股市直播更新'
           pushId = handleData.storePush(title, news, deals, content, url)
-          sendCloud.send(0, pushId, title, news, deals, content, url, subject)
+          push = Push(0, pushId, title, news, deals, content, url, subject) 
+          sendCloud.send(push)
+          #sendCloud.send(0, pushId, title, news, deals, content, url, subject)
     LogGet('after for 111')
     if getNew is False: #仓位暂时没更新，只更新交易内容，也要能判断出
       for i in range(oldLen, newLen):
@@ -211,7 +214,9 @@ def runOnce(url, wuSendedLst, oldLst ) :
         date = time.strftime('%m月%d日', time.localtime(time.time()))
         title = date + 'wu2198股市直播更新'
         pushId = handleData.storePush(title, news, deals, content, url, subject)
-        sendCloud.send(0, pushId, title, news, deals, content, url)
+        push = Push(0, pushId, title, news, deals, content, url, subject) 
+        sendCloud.send(push)
+        #sendCloud.send(0, pushId, title, news, deals, content, url, subject)
 
   refreshTime =  "\n更新时间: " + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
   LogGet(refreshTime + '')
@@ -233,5 +238,5 @@ def run():
 #run()
 
 #getMesg('http://blog.sina.com.cn/s/blog_48874cec0102w6sb.html')
-lst = list()
-runEnd('http://blog.sina.com.cn/s/blog_48874cec0102w7fu.html',lst)
+#lst = list()
+#runEnd('http://blog.sina.com.cn/s/blog_48874cec0102w7fu.html',lst)

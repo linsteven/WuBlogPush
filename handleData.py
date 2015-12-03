@@ -68,6 +68,18 @@ def queryId(uId):
     for i in range(len(row)):
       print row[i]
 
+def queryAllUsers():
+  con = lite.connect(dbPath)
+  with con:
+    cur = con.cursor()
+    cur.execute("SELECT * FROM users")
+    con.commit()
+    rows = cur.fetchall()
+    for i in range(len(rows)):
+      for j in range(len(rows[i])):
+        print rows[i][j]
+      print ""
+
 def queryUserId(uId):
   con = lite.connect(dbPath)
   with con:
@@ -99,5 +111,6 @@ def updateTime(uId, uTime):
 #initDB()
 #store('csava', 'fefew', 'fesaf', 'fwfweg','http://sf')
 #queryId(1)
-#queryUserId(2)
+#queryUserId(1)
 #getUsers()
+#queryAllUsers()
