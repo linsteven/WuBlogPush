@@ -104,7 +104,7 @@ def updateTime(uId, uTime):
   con.text_factory = str
   with con:
     cur = con.cursor()
-    cur.execute("UPDATE Pushes SET Time=? WHERE Id=?", (uTime, uId)) 
+    cur.execute("UPDATE pushes SET Time=? WHERE Id=?", (uTime, uId)) 
     con.commit()
     print "Number of rows updated: %d" % cur.rowcount
 
@@ -114,3 +114,5 @@ def updateTime(uId, uTime):
 #queryUserId(1)
 #getUsers()
 #queryAllUsers()
+#ctime  = '2015-12-04 15:10:01'
+#updateTime(1, ctime)

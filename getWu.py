@@ -160,7 +160,6 @@ def runOnce(url, wuSendedLst, oldLst ) :
     LogGet('\n\n---------------\nNew message:')
     for pos in range(oldLen, newLen):
       oldLst.append(newLst[pos])
-      LogGet(newLst[pos])
     getNew = False
     for i in range(oldLen, newLen) :
       latestDeal = ''
@@ -237,6 +236,5 @@ def run():
 
 #run()
 
-#getMesg('http://blog.sina.com.cn/s/blog_48874cec0102w6sb.html')
 #lst = list()
-#runEnd('http://blog.sina.com.cn/s/blog_48874cec0102w7fu.html',lst)
+#runEnd('http://blog.sina.com.cn/s/blog_48874cec0102w7nv.html',lst)

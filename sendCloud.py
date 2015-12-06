@@ -9,16 +9,21 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-mailUrl = "http://api.sendcloud.net/apiv2/mail/sendtemplate"
+mailUrl = "http://sendcloud.sohu.com/webapi/mail.send_template.json"
 
-API_USER = "linsteven_test"
-API_KEY = os.environ.get("API_KEY")
+apiFile = open('apiInfo.txt','r')
+apiInfo = apiFile.readlines()
+API_USER = apiInfo[0].strip()
+API_KEY = apiInfo[1].strip()
 
 #def send(templateId, pushId, title, news, deals, content, url, subject='') :
 def send(push):
   LogEmail('\n' + time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime()) )
   LogEmail('pushId:' + str(push.pushId) + '\n' + push.title+ '\nnews:\n'\
-          + push.news + '\ndeals:\n' + push.deals + '\ncontent:' + push.content)
+          + push.news + '\ndeals:\n' + push.deals + '\ncontent:' + push.content + '\nsubject:' + push.subject)
+  apiKey = str(API_KEY)
+  LogEmail(apiKey)
+  LogEmail(API_USER)
   usersLst = getUsers()
   num = len(usersLst)
   onceNum = 100
@@ -67,13 +72,13 @@ def sendOnce(push, usersLst, start, end):
   else :
     templateName = 'template_wu_all'
   params = {
-    "apiUser": API_USER,
-    "apiKey" : API_KEY,
-    "templateInvokeName" : templateName,
-    "xsmtpapi" : json.dumps(sub_vars), 
+    "api_user": API_USER,
+    "api_key" : API_KEY,
     "from" : "wu@batch.wublogpush.com",
-    "fromName" : "吴姐推送",
+    "substitution_vars" : json.dumps(sub_vars), 
     "subject" : push.subject,
+    "template_invoke_name" : templateName,
+    "fromname" : "吴姐推送",
     }
   
   r = requests.post(mailUrl, files={}, data=params)
