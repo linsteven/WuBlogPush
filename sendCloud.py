@@ -22,8 +22,6 @@ def send(push):
   LogEmail('pushId:' + str(push.pushId) + '\n' + push.title+ '\nnews:\n'\
           + push.news + '\ndeals:\n' + push.deals + '\ncontent:' + push.content + '\nsubject:' + push.subject)
   apiKey = str(API_KEY)
-  LogEmail(apiKey)
-  LogEmail(API_USER)
   usersLst = getUsers()
   num = len(usersLst)
   onceNum = 100
@@ -84,5 +82,5 @@ def sendOnce(push, usersLst, start, end):
   r = requests.post(mailUrl, files={}, data=params)
   LogEmail(r.text)
 
-#push = Push('0', '1', 'wu2198股市直播', '', '', '', '')
-#send(push)
+push = Push('0', '1', 'wu2198股市直播', '', '', '', '')
+send(push)

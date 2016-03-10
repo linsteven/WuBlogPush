@@ -161,7 +161,9 @@ def runOnce(url, wuSendedLst, oldLst ) :
     for pos in range(oldLen, newLen):
       oldLst.append(newLst[pos])
     getNew = False
-    for i in range(oldLen, newLen) :
+    for i in range(oldLen-3, newLen) :
+      if i < 0:
+        continue
       latestDeal = ''
       LogGet(newLst[i])
       if '中短线帐户' in newLst[i] :
@@ -215,7 +217,6 @@ def runOnce(url, wuSendedLst, oldLst ) :
         pushId = handleData.storePush(title, news, deals, content, url, subject)
         push = Push(0, pushId, title, news, deals, content, url, subject) 
         sendCloud.send(push)
-        #sendCloud.send(0, pushId, title, news, deals, content, url, subject)
 
   refreshTime =  "\n更新时间: " + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
   LogGet(refreshTime + '')
