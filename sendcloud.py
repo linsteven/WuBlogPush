@@ -18,9 +18,9 @@ def send(push):
     log_email('push_id:' + str(push.push_id) + '\n' + push.title+ '\nnews:\n'\
             + push.news + '\ndeals:\n' + push.deals + '\nchanges:\n' +\
             push.changes + '\ncontent:' + push.content + '\nsubject:' + push.subject)
-    users_lst = get_users()
-    #users_lst = list()
-    #users_lst.append(('763061206@qq.com', 'sgsgerhbrt'))
+    #users_lst = get_users()
+    users_lst = list()
+    users_lst.append(('763061206@qq.com', 'sgsgerhbrt'))
     num = len(users_lst)
     once_num = 100
     times = num/once_num

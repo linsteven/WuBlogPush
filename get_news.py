@@ -71,7 +71,7 @@ def get_content_lst(lines, start, end):
             lines[i-1] = lines[i-1] + '  ' + lines[i]
             lines[i] = ''
     for i in range(start, end+1):
-        if not lines[i]:
+        if lines[i]:
             lst.append(lines[i])
     return lst
 
@@ -101,7 +101,7 @@ def get_html(url, proxy_index, is_timeout):
 def get_mesg(url, proxy_index, is_timeout=False):
     html, proxy_index = get_html(url, proxy_index, is_timeout)
     if html == '':
-        return []
+        return [], proxy_index
     lines = html.split('\n')
     start, end = find_start_end(lines)
     return get_content_lst(lines, start, end), proxy_index
@@ -160,31 +160,42 @@ def get_final_position(new_lst):
             break
     return position
 
-def run_end(url, proxy_index):
-    if url == '':
-        return
-    new_lst, proxy_index = get_mesg(url, proxy_index)
+def get_changes(tag, new_lst):
     old_position = get_position()
     new_position = get_final_position(new_lst)
     if new_position == '':
         new_position = old_position
     changes = '昨日： ' + old_position + '<br>'
+    changes += tag + '： ' + new_position
+    return changes
+
+def run_end(url, proxy_index):
+    if url == '':
+        return
+    new_lst, proxy_index = get_mesg(url, proxy_index)
     date = time.strftime('%m月%d日', time.localtime(time.time()))
     hour = time.localtime().tm_hour
     deals_lst = get_all_deals(new_lst)
     deals = list_to_str(deals_lst)
     content = list_to_str(new_lst)
     title = ''
+    is_end = False
     if hour == 11:
         title = date + 'wu2198股市直播(上午篇)'
-        changes += '上午： ' + new_position
+        changes = get_changes('上午', new_lst)
     else:
         title = date + 'wu2198股市直播'
-        changes += '今日： ' + new_position
+        changes = get_changes('今日', new_lst)
+        new_position = get_final_position(new_lst)
         save_position(new_position)
+        is_end = True
     subject = title
     push_id = handle_data.store_push(title, '', deals, changes, content, url)
     push = Push(1, push_id, title, '', deals, changes, content, url, subject)
+    if is_end:
+        size, content = handle_data.get_size_content(new_position)
+        curtime = time.strftime('%m-%d', time.localtime(time.time()))
+        handle_data.store_position(curtime, size, content, deals, str(push_id))
     sendcloud.send(push)
 
 def is_position(line):
@@ -250,7 +261,7 @@ def get_added_lst(old_lst, new_lst): #should be tested
             log_get(item)
     return added_lst
 
-def get_deal_lst(added_lst):
+def get_deal_lst(added_lst, sended_lst):
     deal_lst = list()
     length = len(added_lst)
     pos = 0
@@ -259,15 +270,16 @@ def get_deal_lst(added_lst):
             pos = i
     if pos == 0:
         for item in added_lst:
-            if is_deal(item):
+            if is_deal(item) and item not in sended_lst:
                 deal_lst.append(item)
                 update_sended(item)
     else:
         for i in range(pos):
             if (re.match(r"^.*[^0-9.]\d{1,2}%", added_lst[i]) and
-                    not is_position(added_lst[i])):
+                    not is_position(added_lst[i]) and
+                    added_lst[i] not in sended_lst):
                 deal_lst.append(added_lst[i])
-                update_sended(item)
+                update_sended(added_lst[i])
     return deal_lst
 
 def split_deal_lst(deal_lst):
@@ -288,31 +300,34 @@ def save_and_send(url, new_deal_lst, added_lst, new_lst):
     content = list_to_str(new_lst)
     date = time.strftime('%m月%d日', time.localtime(time.time()))
     title = date + 'wu2198股市直播更新'
-    changes = ''
+    changes = get_changes('当前', new_lst)
     push_id = handle_data.store_push(title, news, deals, changes, content, url)
     push = Push(0, push_id, title, news, deals, changes, content, url, subject)
     sendcloud.send(push)
 
 def run_once(url, sended_lst, old_lst, proxy_index, update_time):
     if url == '':
-        return
+        return proxy_index, update_time
     is_timeout = judge_is_timeout(update_time)
     new_lst, proxy_index = get_mesg(url, proxy_index, is_timeout)
     new_len = len(new_lst)
     if new_len == 0:
-        return
+        return proxy_index, update_time
+    print datetime.datetime.now(), new_len
+    print new_lst[-1]
     added_lst = get_added_lst(old_lst, new_lst)
     if not added_lst:
-        return
+        return proxy_index, update_time
     old_lst.extend(added_lst)
     update_time = datetime.datetime.now()
-    new_deal_lst = get_deal_lst(added_lst)
+    new_deal_lst = get_deal_lst(added_lst, sended_lst)
     if not new_deal_lst:
         log_refresh_time()
         return proxy_index, update_time
     sended_lst.extend(new_deal_lst) #update_sended_lst
     save_and_send(url, new_deal_lst, added_lst, new_lst)
     log_refresh_time()
+    return proxy_index, update_time
 
 #lst = list()
 #run_end('http://blog.sina.com.cn/s/blog_48874cec0102wfkk.html',lst)

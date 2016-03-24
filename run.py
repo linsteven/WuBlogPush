@@ -40,7 +40,7 @@ while True:
         while is_enter:
             proxy_index, update_time = run_once(url, sended_lst, old_lst,
                                                 proxy_index, update_time)
-            time.sleep(2)
+            time.sleep(60)
             hour, minute = get_hour_minute()
             if not is_mid and hour == mid_hour and minute == mid_mintue:
                 run_end(url, proxy_index)
