@@ -14,6 +14,7 @@ from log import log_error
 from log import log_get
 from log import log_sended
 from log import log_get_sended
+from log import log_proxy
 
 socket.setdefaulttimeout(5)
 POSITION_TAG = '中短线帐户'
@@ -79,10 +80,12 @@ def get_html(url, proxy_index, is_timeout):
     html = ''
     if is_timeout:
         proxy_index = (proxy_index + 1)%(len(proxy_lst) + 1)
+        log_proxy(str(proxy_index))
     try:
         if proxy_index == 0:
             page = urllib.urlopen(url)
         else:
+            log_proxy(proxy_lst[proxy_index-1])
             proxy = urllib2.ProxyHandler({'http': proxy_lst[proxy_index - 1]})
             opener = urllib2.build_opener(proxy)
             urllib2.install_opener(opener)
@@ -165,8 +168,8 @@ def get_changes(tag, new_lst):
     new_position = get_final_position(new_lst)
     if new_position == '':
         new_position = old_position
-    changes = '昨日： ' + old_position + '<br>'
-    changes += tag + '： ' + new_position
+    changes = tag + '： ' + new_position
+    changes += '昨日： ' + old_position + '<br>'
     return changes
 
 def run_end(url, proxy_index):
@@ -313,8 +316,8 @@ def run_once(url, sended_lst, old_lst, proxy_index, update_time):
     new_len = len(new_lst)
     if new_len == 0:
         return proxy_index, update_time
-    print datetime.datetime.now(), new_len
-    print new_lst[-1]
+    #print datetime.datetime.now(), new_len
+    #print new_lst[-1]
     added_lst = get_added_lst(old_lst, new_lst)
     if not added_lst:
         return proxy_index, update_time

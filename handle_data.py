@@ -26,7 +26,7 @@ def init_db():
         cur.execute("DROP TABLE IF EXISTS pushes")
         #add changes
         cur.execute("CREATE TABLE pushes(id INTEGER PRIMARY KEY, title Text, \
-                time Text, news Text, deals Text, content TEXT, url Text);")
+                time Text, news Text, deals Text, changes Text, content TEXT, url Text);")
         cur.execute("DROP TABLE IF EXISTS users")
         cur.execute("CREATE TABLE users(id INTEGER PRIMARY KEY,email Text,token Text,\
                 subscribed_on DateTime, confirmed Boolean, confirmed_on DateTime, \
@@ -49,7 +49,7 @@ def store_position(date, size, content, deals, push_id):
         cur.execute('''INSERT INTO positions(date, size, content, deals, push_id) \
                 VALUES(?,?,?,?,?)''', positions)
         con.commit()
-        lid = cur.lastrowid #The last Id of the inserted row
+        #lid = cur.lastrowid #The last Id of the inserted row
         #print lid
         #print type(lid)
 
@@ -158,7 +158,7 @@ def init_positions():
             position = get_position(row[5])
             if not position:
                 continue
-            size ,content = get_size_content(position)
+            size, content = get_size_content(position)
             pos = (row[2].split(' ')[0], size, content, row[4], row[0])
             cur.execute('''INSERT INTO positions(date, size, content, deals, push_id) \
                     VALUES(?,?,?,?,?)''', pos)
@@ -189,6 +189,17 @@ def query_user_id(uid):
         for item in row:
             print item
 
+def query_user_by_email(mail):
+    con = lite.connect(dbpath)
+    with con:
+        cur = con.cursor()
+        cur.execute("SELECT * FROM users WHERE email=:email", {"email": mail})
+        con.commit()
+        row = cur.fetchone()
+        for item in row:
+            print item
+
+
 def update_title(uid, utitle):
     con = lite.connect(dbpath)
     con.text_factory = str
@@ -207,6 +218,15 @@ def update_time(uid, utime):
         con.commit()
         print "Number of rows updated: %d" % cur.rowcount
 
+def update_changes(uid, uchanges):
+    con = lite.connect(dbpath)
+    con.text_factory = str
+    with con:
+        cur = con.cursor()
+        cur.execute("UPDATE pushes SET changes=? WHERE Id=?", (uchanges, uid))
+        con.commit()
+        print "Number of rows updated: %d" % cur.rowcount
+
 def add_column():
     con = lite.connect(dbpath)
     cur = con.cursor()
@@ -222,3 +242,4 @@ def add_column():
 #init_positions()   #2
 #query_all_positions() #3
 #store_position('2016-03-23', '50', '10%新股.10%袖珍股.10%生物.20%移动支付', '', '428')
+#query_user_by_email('150038817@qq.com')
