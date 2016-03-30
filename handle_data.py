@@ -227,6 +227,67 @@ def update_changes(uid, uchanges):
         con.commit()
         print "Number of rows updated: %d" % cur.rowcount
 
+def update_deals(uid, udeals):
+    con = lite.connect(dbpath)
+    con.text_factory = str
+    with con:
+        cur = con.cursor()
+        cur.execute("UPDATE pushes SET deals=? WHERE Id=?", (udeals, uid))
+        con.commit()
+        print "Number of rows updated: %d" % cur.rowcount
+
+def update_pos_date(uid, utime):
+    con = lite.connect(dbpath)
+    con.text_factory = str
+    with con:
+        cur = con.cursor()
+        cur.execute("UPDATE positions SET date=? WHERE Id=?", (utime, uid))
+        con.commit()
+        print "Number of rows updated: %d" % cur.rowcount
+
+def update_pos_size(uid, usize):
+    con = lite.connect(dbpath)
+    con.text_factory = str
+    with con:
+        cur = con.cursor()
+        cur.execute("UPDATE positions SET size=? WHERE Id=?", (usize, uid))
+        con.commit()
+        print "Number of rows updated: %d" % cur.rowcount
+
+def update_pos_content(uid, ucontent):
+    con = lite.connect(dbpath)
+    con.text_factory = str
+    with con:
+        cur = con.cursor()
+        cur.execute("UPDATE positions SET content=? WHERE Id=?", (ucontent, uid))
+        con.commit()
+        print "Number of rows updated: %d" % cur.rowcount
+        
+def update_pos_deals(uid, udeals):
+    con = lite.connect(dbpath)
+    con.text_factory = str
+    with con:
+        cur = con.cursor()
+        cur.execute("UPDATE positions SET deals=? WHERE Id=?", (udeals, uid))
+        con.commit()
+        print "Number of rows updated: %d" % cur.rowcount
+
+def update_position(date, size, content, deals, push_id):
+    con = lite.connect(dbpath)
+    con.text_factory = str
+    with con:
+        cur = con.cursor()
+        cur.execute("SELECT * FROM positions WHERE date=\'" + date + "\'")
+        con.commit()
+        rows = cur.fetchall()
+        if not rows:
+            cur.execute('''INSERT INTO positions(date, size, content, deals, push_id) \
+                VALUES(?,?,?,?,?)''', positions)
+        else:
+            cur.execute("UPDATE positions SET size=?, content=?, deals=?, push_id=?  WHERE date=\'" + date + "\'", (size, content, deals, push_id))
+        con.commit()
+        #print "Number of rows updated: %d" % cur.rowcount
+
 def add_column():
     con = lite.connect(dbpath)
     cur = con.cursor()
@@ -240,6 +301,20 @@ def add_column():
 #create_positions()
 #create_positions() #1
 #init_positions()   #2
-#query_all_positions() #3
 #store_position('2016-03-23', '50', '10%新股.10%袖珍股.10%生物.20%移动支付', '', '428')
 #query_user_by_email('150038817@qq.com')
+#update_pos_date(88, '2016-03-24')
+#utext = '''
+#9:31 兑现30%互联网金融股(挂单全部成交),昨日它逆市涨了近7%(未能封停),我收短线肉走人.....短线不贪婪,不恋战<br>
+#14:03 买进10%软件股,见它连续调整了几天,应该是机会<br>
+#14:36 买进20%移动支付概念股<br>
+#14:52 兑现10%券商股,T出10%网络安全股....收两块肉'''
+#update_pos_deals(62, utext)
+#update_pos_size(62, '100')
+#update_pos_content(62, '10%猪肉.20%网络安全.30%高送转.10%券商.10%软件.20%移动支付')
+#query_all_positions() #3
+#size = '50'
+#content = '10%猪肉.20%网络安全.20%电池'
+#deals = '9:33 买进20%电池股(挂单成交)<br>11:27 兑现10%网络安全股,吃块大肉'
+#push_id = '441'
+#update_position('2016-03-28', size, content, deals, push_id)

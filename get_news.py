@@ -17,7 +17,7 @@ from log import log_get_sended
 from log import log_proxy
 
 socket.setdefaulttimeout(5)
-POSITION_TAG = '中短线帐户'
+POSITION_TAG = '短线帐户'
 proxy_lst = list()
 with open("proxy.txt") as proxy_file:
     for proxy_line in proxy_file:
@@ -168,8 +168,8 @@ def get_changes(tag, new_lst):
     new_position = get_final_position(new_lst)
     if new_position == '':
         new_position = old_position
-    changes = tag + '： ' + new_position
-    changes += '昨日： ' + old_position + '<br>'
+    changes = tag + '： ' + new_position + '<br>'
+    changes += '昨日： ' + old_position
     return changes
 
 def run_end(url, proxy_index):
@@ -181,24 +181,21 @@ def run_end(url, proxy_index):
     deals_lst = get_all_deals(new_lst)
     deals = list_to_str(deals_lst)
     content = list_to_str(new_lst)
+    new_position = get_final_position(new_lst)
     title = ''
-    is_end = False
     if hour == 11:
         title = date + 'wu2198股市直播(上午篇)'
         changes = get_changes('上午', new_lst)
     else:
         title = date + 'wu2198股市直播'
         changes = get_changes('今日', new_lst)
-        new_position = get_final_position(new_lst)
         save_position(new_position)
-        is_end = True
     subject = title
     push_id = handle_data.store_push(title, '', deals, changes, content, url)
     push = Push(1, push_id, title, '', deals, changes, content, url, subject)
-    if is_end:
-        size, content = handle_data.get_size_content(new_position)
-        curtime = time.strftime('%m-%d', time.localtime(time.time()))
-        handle_data.store_position(curtime, size, content, deals, str(push_id))
+    size, content = handle_data.get_size_content(new_position)
+    curtime = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+    handle_data.update_position(curtime, size, content, deals, str(push_id))
     sendcloud.send(push)
 
 def is_position(line):
@@ -215,7 +212,8 @@ def find_deals(deals_lst, new_lst, start, end):
             new_start = i
     for i in range(new_start, end):
         if (POSITION_TAG not in new_lst[i] and
-                re.match(r"^.*[^0-9.]\d{1,2}%", new_lst[i])):
+                re.match(r"^.*[^0-9.]\d{1,2}%", new_lst[i]) and
+                'HREF' not in new_lst[i]):
             deals_lst.append(new_lst[i])
     #return deals_lst
 
@@ -306,6 +304,11 @@ def save_and_send(url, new_deal_lst, added_lst, new_lst):
     changes = get_changes('当前', new_lst)
     push_id = handle_data.store_push(title, news, deals, changes, content, url)
     push = Push(0, push_id, title, news, deals, changes, content, url, subject)
+
+    new_position = get_final_position(new_lst)
+    size, pos_content = handle_data.get_size_content(new_position)
+    curtime = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+    handle_data.update_position(curtime, size, pos_content, deals, str(push_id))
     sendcloud.send(push)
 
 def run_once(url, sended_lst, old_lst, proxy_index, update_time):
